@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Essay Writer{% endblock %}
+
+{% block extra_head %}
+    <meta name="description" content="AI-powered essay writing application">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
+
+{% block content %}
+    <h2>Essay Writer</h2>
+    <form method="POST" action="{{ url_for('essay_writer') }}">
+        <label for="topic">Essay Topic:</label>
+        <input type="text" id="topic" name="topic" required>
+
+        <label for="length">Essay Length (in words):</label>
+        <input type="number" id="length" name="length" min="100" max="5000" required>
+
+        <button type="submit">Generate Essay</button>
+    </form>
+
+    {% if essay %}
+        <h3>Generated Essay:</h3>
+        <div class="essay-content">
+            {{ essay|safe }}
+        </div>
+    {% endif %}
+{% endblock %}
