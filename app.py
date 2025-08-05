@@ -71,21 +71,32 @@ def short_story():
 
     return render_template('short-story.html')
 
-@app.route("/image-generation")
+@app.route("/image-generation", methods =['GET','POST'])
 def image_generation():
     if request.method == 'POST':
         topic = request.form.get('topic')
         response = client.models.generate_content(
-            model='gemini-2.5-pro',
-            config= types.GenerateContentConfig(
-                system_instruction=shortStoryTxt
-            ),
-            contents=f"Write a short story about {topic} that is interesting and compelling to read."
-        )    
-        story = response.text
-        return render_template('short-story.html', story=story)
+           model="gemini-2.0-flash-preview-image-generation",
+           contents=f"Draw an image about {topic}.",
+           config= types.GenerateContentConfig(
+               response_modalities=['TEXT','IMAGE']
+           )
+        )
+        image_data = None
+        text = None
+        for part in response.candidates[0].content.parts:
+            if part.text is not None:
+                text = part.text
+            elif part.inline_data is not None:
+                # part.inline_data is a Blob. It has 'data' and 'mime_type'.
+                image_bytes = part.inline_data.data
+                encoded_image = base64.b64encode(image_bytes).decode('utf-8')
+                mime_type = part.inline_data.mime_type
+                image_data = f"data:{mime_type};base64,{encoded_image}"
 
-    return render_template('short-story.html')
+        return render_template('image-gen.html', image=image_data, story=text)
+
+    return render_template('image-gen.html')
     
 
 if __name__ == '__main__':

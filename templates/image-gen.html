@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Image Generation{% endblock %}
+
+{% block extra_head %}
+    <meta name="description" content="AI-powered Image Generation application">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
+
+{% block content %}
+    <h2>Image Generation</h2>
+    <form method="POST" action="{{ url_for('image_generation') }}">
+        <label for="topic">Image Topic:</label>
+        <input type="text" id="topic" name="topic" required>
+        <button type="submit">Generate Image</button>
+    </form>
+
+    {% if story %}
+        <h3>AI Response:</h3>
+        <div class="story-content">
+            <p>{{ story }}</p>
+        </div>
+    {% endif %}
+
+    {% if image %}
+        <h3>Generated Image:</h3>
+        <div class="image-content">
+            <a href="{{ image }}" download="generated-image.png">
+                <img src="{{ image }}" alt="Generated Image - Click to download">
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}
