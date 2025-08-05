@@ -33,6 +33,14 @@ except FileNotFoundError:
 except Exception as e:
     print(f"an error occured: {e}")
 
+try:
+    with open('./system_instruction/image-gen.txt','r') as file:
+        imageGenTxt = file.read()
+        print("found image-gen.txt")
+except FileNotFoundError:
+    print("Error: image-gen.txt not found")
+except Exception as e:
+    print(f"an error occured: {e}")
 
 @app.route("/")
 def home():
@@ -79,7 +87,8 @@ def image_generation():
            model="gemini-2.0-flash-preview-image-generation",
            contents=f"Draw an image about {topic}.",
            config= types.GenerateContentConfig(
-               response_modalities=['TEXT','IMAGE']
+               response_modalities=['TEXT','IMAGE'],
+               system_instruction=imageGenTxt
            )
         )
         image_data = None
