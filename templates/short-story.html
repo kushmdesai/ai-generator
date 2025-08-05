@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Short Story Writer{% endblock %}
+
+{% block extra_head %}
+    <meta name="description" content="AI-powered short story writing application">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+{% endblock %}
+
+{% block content %}
+    <h2>Short Story Writer</h2>
+    <form method="POST" action="{{ url_for('short_story') }}">
+        <label for="topic">Short Story Topic:</label>
+        <input type="text" id="topic" name="topic" required>
+        <button type="submit">Generate Short Story</button>
+    </form>
+
+    {% if story %}
+        <h3>Generated Short Story:</h3>
+        <div class="story-content">
+            {{ story|safe }}
+        </div>
+    {% endif %}
+{% endblock %}
