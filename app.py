@@ -2,6 +2,7 @@ import os, base64, markdown, wave, time
 from flask import Flask, render_template, request
 from google import genai
 from google.genai import types
+from google.genai.errors import ClientError
 from dotenv import load_dotenv
 from PIL import Image
 from io import BytesIO
@@ -18,11 +19,11 @@ OUTPUT_DIR = os.path.join(app.static_folder, 'generated')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
-    with wave.open(filename, 'wb') as wf:
-        wf.setnchannels(channels)
-        wf.setsampwidth(sample_width)
-        wf.setframerate(rate)
-        wf.writeframes(pcm)
+   with wave.open(filename, "wb") as wf:
+      wf.setnchannels(channels)
+      wf.setsampwidth(sample_width)
+      wf.setframerate(rate)
+      wf.writeframes(pcm)
 
 try:
     with open('./system_instruction/essay.txt','r') as file:
@@ -174,38 +175,32 @@ def text_to_speech():
     audio_path = None
     if request.method == 'POST':
         text = request.form.get('text', '').strip()
-
-        response = client.models.generate_content(  
-            model="gemini-2.5-flash-preview-tts",
-            contents=text,
-            config=types.GenerateContentConfig(
-                response_modalities=["AUDIO"],
-                speech_config=types.SpeechConfig(
-                    voice_config=types.VoiceConfig(
-                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash-preview-tts",
+                contents=text,
+                config=types.GenerateContentConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=types.PrebuiltVoiceConfig(
                             voice_name='Kore',
+                            )
                         )
-                    )
-                ),
+                    ),
+                )
             )
-        )
-
-        try:
-            b64data = response.candidates[0].content.parts[0].inline_data.data
-        except (AttributeError, IndexError) as e:
-            return render_template('text_to_speech.html', error='Unexpected response structure from TTS API.')
-        
-        try:
-            raw_bytes = base64.b64decode(b64data)
-        except Exception:
-            return render_template('text_to_speech.html', error='Failed to decode auido data')
-
+        except ClientError as e:
+            if "RESOURCE_EXHAUSTED" in str(e):
+                print("⚠️ Quota exceeded! Try again tomorrow or upgrade your plan.")
+        output_folder = os.path.join(app.root_path, 'static', 'generated')
+        os.makedirs(output_folder, exist_ok=True)
         timestamp = int(time.time() * 1000)
-        filename = f'tts_{timestamp}.wav'
-        full_path = os.path.join(OUTPUT_DIR, filename)
-        with open(full_path, 'wb') as f:
-            f.write(raw_bytes)
-        audio_path = f"generated/{filename}"
+        data = response.candidates[0].content.parts[0].inline_data.data
+        file_name=f'tts_{timestamp}.wav'
+        fullpath = os.path.join(output_folder, file_name)
+        wave_file(fullpath, data)
+        audio_path = f'/generated/{file_name}'
         return render_template('text_to_speech.html', audio=audio_path)
     
     # For GET requests
