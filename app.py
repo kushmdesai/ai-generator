@@ -169,6 +169,8 @@ def code_generation():
 
 @app.route("/chatbot", methods = ['GET','POST'])
 def chatbot():
+    if 'chat_history' not in session:
+        session['chat_history'] = []
     bot_response = None
     if request.method == 'POST':
         user_input = request.form.get('user_input', '').strip()
@@ -179,6 +181,13 @@ def chatbot():
                     contents=user_input
                 )
                 bot_response = response.text
+
+                session['chat_history'].append({
+                    'user': user_input,
+                    'bot' : bot_response
+                })
+                session.modified = True
+                
             except ClientError as e:
                 if "RESOURCE_EXHAUSTED":
                     bot_response = 'QUOTA EXCEEDED! Try again tomorrow or upgrade your plan!'
@@ -186,7 +195,7 @@ def chatbot():
                     bot_response = f'An error occured: {e}'
             except Exception as e:
                 bot_response = f' Unexpected error: {e}'
-    return render_template('chatbot.html', bot_response = bot_response)
+    return render_template('chatbot.html', chat_history = session['chat_history'])
 
 @app.route("/text-to-speech", methods=['GET', 'POST'])
 def text_to_speech():

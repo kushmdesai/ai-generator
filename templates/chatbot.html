@@ -9,10 +9,12 @@
         <button type="submit">Send</button>
     </form>
 
-    {% if bot_response %}
-        <h3>Chatbot:</h3>
-        <div class="chatbot-response">
-            {{ bot_response|safe }}
+    {% if chat_history %}
+        <div class="chat-history">
+            {% for entry in chat_history %}
+                <div class="chat-message user"><strong>You:</strong>{{entry.user}}</div>
+                <div class="chat-message bot"><strong>AI:</strong>{{entry.bot|safe}}</div>
+            {% endfor %}
         </div>
     {% endif %}
 {% endblock %}
@@ -26,5 +28,5 @@
     <script src="{{ url_for('static', filename='chatbot.js') }}"></script>
 {% endblock %}
 {% block extra_head %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
 {% endblock %}
