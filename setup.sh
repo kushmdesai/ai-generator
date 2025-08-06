@@ -1,50 +1,33 @@
 #!/bin/bash
 
-echo "Starting process..."
+# Exit if any command fails
+set -e
 
-# --- Argument and Port Validation ---
-# Exit if no port number is provided.
-if [ "$#" -ne 1 ]; then
-  echo "Parameter required: PORT"
-  echo "Usage: ./setup.sh <PORT>"
-  exit 1
-fi
+echo "🔧 Starting Flask Chatbot App..."
 
-PORT="$1"
+# Create logs directory if it doesn't exist
+mkdir -p logs
 
-# Exit if the port is not a non-negative integer.
-if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
-  echo "PORT must be a non-negative integer."
-  exit 1
-fi
+# Optional: activate virtualenv if you're using one
+# source venv/bin/activate
 
-# --- Check and Kill Existing Process ---
-# Kill any process currently using the specified port.
-# The 'timeout' command prevents the script from getting stuck if lsof hangs.
-echo "Checking for existing processes on port $PORT..."
-PIDS=$(timeout 2s lsof -ti ":$PORT")
-if [ -n "$PIDS" ]; then
-  echo "Killing process(es) with PID: $PIDS"
-  kill -9 $PIDS
-fi
+# Export environment variables
+export FLASK_APP=app.py
+export FLASK_ENV=production
+# export GEMINI_API_KEY="your-key-here"  # optionally uncomment if not in env
 
-# --- Git Update ---
-# Update code from GitHub repository.
-echo "Pulling latest code from Git..."
-if ! git pull; then
-  echo "git pull failed. Please resolve any conflicts and try again."
-  exit 1
-fi
-
-# --- Virtual Environment Setup and Dependencies ---
-# Create virtual environment and install dependencies.
-echo "Setting up virtual environment and installing dependencies..."
-python3 -m venv .venv
-source .venv/bin/activate
+# Install dependencies
+echo "📦 Installing dependencies..."
 pip install -r requirements.txt
 
-# --- Start the Flask App with Gunicorn ---
-# This command runs Gunicorn in the foreground so you can see any
-# errors directly in your terminal. You can press Ctrl+C to stop it.
-echo "✅ Installation done. Starting gunicorn..."
-gunicorn -w 1 -b 0.0.0.0:$1 app:app --log-level debug
+# Get current timestamp for log file
+TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+
+# Start the app and redirect all output to logs
+echo "🚀 Launching with Gunicorn..."
+gunicorn app:app \
+  --bind 0.0.0.0:${PORT:-5000} \
+  --workers 2 \
+  --threads 2 \
+  --timeout 60 \
+  > logs/gunicorn_${TIMESTAMP}.log 2>&1
