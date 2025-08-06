@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Code Generation{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Code Generation</h1>
+    <form method="POST">
+        <div class="form-group">
+            <label for="topic">Enter a description for the code you want to generate:</label>
+            <input type="text" class="form-control" id="topic" name="topic" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Generate Code</button>
+    </form>
+
+    {% if code %}
+    <div class="mt-4">
+        <h2>Generated Code</h2>
+        <div>{{ code|safe }}</div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

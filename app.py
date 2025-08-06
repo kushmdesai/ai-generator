@@ -1,11 +1,10 @@
-import os
+import os, base64, time, markdown
 from flask import Flask, render_template, request
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 from PIL import Image
 from io import BytesIO
-import base64
 
 # Configure the client with your API key
 # Make sure to set the GEMINI_API_KEY environment variable
@@ -88,7 +87,6 @@ def image_generation():
            contents=f"Draw an image about {topic}.",
            config= types.GenerateContentConfig(
                response_modalities=['TEXT','IMAGE'],
-               system_instruction=imageGenTxt
            )
         )
         image_data = None
@@ -106,6 +104,72 @@ def image_generation():
         return render_template('image-gen.html', image=image_data, story=text)
 
     return render_template('image-gen.html')
+
+
+# @app.route("/video-generation", methods=['GET', 'POST'])
+# def video_generation():
+#     if request.method == 'POST':
+#         topic = request.form.get('topic')
+#         operation = client.models.generate_videos(
+#             model='veo-2.0-generate-001',
+#             prompt=f'generate a video with {topic}.',
+#         )
+
+#         # Poll the operation status until the video is ready.
+#         while not operation.done:
+#             print("Waiting for video generation to complete...")
+#             time.sleep(10)
+#             operation = client.operations.get(operation)
+
+#         # Get the generated video data.
+#         generated_video = operation.response.generated_videos[0]
+#         video_data = base64.b64encode(generated_video.video.data).decode('utf-8')
+#         video_data = f"data:video/mp4;base64,{video_data}"
+
+#         return render_template('video_gen.html', video_data=video_data)
+
+#     return render_template('video_gen.html')
+
+try:
+    with open('./system_instruction/code-gen.txt','r') as file:
+        codeGenTxt = file.read()
+        print("found code-gen.txt")
+except FileNotFoundError:
+    print("Error: code-gen.txt not found")
+except Exception as e:
+    print(f"an error occured: {e}")
+
+@app.route("/code-generation", methods=['GET', 'POST'])
+def code_generation():
+    if request.method == 'POST':
+        topic = request.form.get('topic')
+        response = client.models.generate_content(
+            model='gemini-2.5-pro',
+            config=types.GenerateContentConfig(
+                system_instruction=codeGenTxt
+            ),
+            contents=f"Write code for {topic}."
+        )
+        code = markdown.markdown(response.text, extensions=['fenced_code'])
+        return render_template('code_gen.html', code=code)
+
+    return render_template('code_gen.html')
+
+@app.route("/chatbot", methods = ['GET','POST'])
+def chatbot():
+    return render_template('placeholder.html', page_name='Chatbot')
+
+@app.route("/text-to-speech", methods = ['GET','POST'])
+def text_to_speech():
+    return render_template('placeholder.html', page_name='Text to Speech')
+
+@app.route("/speech-to-text", methods = ['GET','POST'])
+def speech_to_text():
+    return render_template('placeholder.html', page_name='Speech to Text')
+
+@app.route("/audio-generation", methods = ['GET','POST'])
+def audio_generation():
+    return render_template('placeholder.html', page_name='Audio Generation')
     
 
 if __name__ == '__main__':
