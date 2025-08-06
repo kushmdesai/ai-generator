@@ -169,7 +169,24 @@ def code_generation():
 
 @app.route("/chatbot", methods = ['GET','POST'])
 def chatbot():
-    return render_template('chatbot.html')
+    bot_response = None
+    if request.method == 'POST':
+        user_input = request.form.get('user_input', '').strip()
+        if user_input:
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-pro',
+                    contents=user_input
+                )
+                bot_response = response.text
+            except ClientError as e:
+                if "RESOURCE_EXHAUSTED":
+                    bot_response = 'QUOTA EXCEEDED! Try again tomorrow or upgrade your plan!'
+                else:
+                    bot_response = f'An error occured: {e}'
+            except Exception as e:
+                bot_response = f' Unexpected error: {e}'
+    return render_template('chatbot.html', bot_response = bot_response)
 
 @app.route("/text-to-speech", methods=['GET', 'POST'])
 def text_to_speech():
@@ -214,4 +231,4 @@ def speech_to_text():
     
 
 if __name__ == '__main__':
-    pass
+    app.run(port=5000, debug=True)
