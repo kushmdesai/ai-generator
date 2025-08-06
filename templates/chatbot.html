@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Chatbot{% endblock %}
+
+{% block content %}
+    <h2>Chatbot</h2>
+    <form method="POST" action="{{ url_for('chatbot') }}">
+        <label for="user_input">You:</label>
+        <input type="text" id="user_input" name="user_input" required>
+        <button type="submit">Send</button>
+    </form>
+
+    {% if bot_response %}
+        <h3>Chatbot:</h3>
+        <div class="chatbot-response">
+            {{ bot_response|safe }}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+    <script>
+        // Optional: Add any JavaScript functionality if needed
+        // For example, you can add event listeners or enhance the user experience
+    </script>
+                                
+    <script src="{{ url_for('static', filename='chatbot.js') }}"></script>
+{% endblock %}
+{% block extra_head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css') }}">
+{% endblock %}

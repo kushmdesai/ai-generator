@@ -1,5 +1,5 @@
 import os, base64, markdown, wave, time
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session
 from google import genai
 from google.genai import types
 from google.genai.errors import ClientError
@@ -14,6 +14,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
 
 OUTPUT_DIR = os.path.join(app.static_folder, 'generated')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -168,7 +169,7 @@ def code_generation():
 
 @app.route("/chatbot", methods = ['GET','POST'])
 def chatbot():
-    return render_template('placeholder.html', page_name='Chatbot')
+    return render_template('chatbot.html')
 
 @app.route("/text-to-speech", methods=['GET', 'POST'])
 def text_to_speech():
@@ -210,10 +211,6 @@ def text_to_speech():
 @app.route("/speech-to-text", methods = ['GET','POST'])
 def speech_to_text():
     return render_template('placeholder.html', page_name='Speech to Text')
-
-@app.route("/audio-generation", methods = ['GET','POST'])
-def audio_generation():
-    return render_template('placeholder.html', page_name='Audio Generation')
     
 
 if __name__ == '__main__':
