@@ -1,4 +1,4 @@
-import os, base64, time, markdown
+import os, base64, markdown, wave, time
 from flask import Flask, render_template, request
 from google import genai
 from google.genai import types
@@ -13,6 +13,16 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = Flask(__name__)
+
+OUTPUT_DIR = os.path.join(app.static_folder, 'generated')
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
+    with wave.open(filename, 'wb') as wf:
+        wf.setnchannels(channels)
+        wf.setsampwidth(sample_width)
+        wf.setframerate(rate)
+        wf.writeframes(pcm)
 
 try:
     with open('./system_instruction/essay.txt','r') as file:
@@ -159,9 +169,48 @@ def code_generation():
 def chatbot():
     return render_template('placeholder.html', page_name='Chatbot')
 
-@app.route("/text-to-speech", methods = ['GET','POST'])
+@app.route("/text-to-speech", methods=['GET', 'POST'])
 def text_to_speech():
-    return render_template('placeholder.html', page_name='Text to Speech')
+    audio_path = None
+    if request.method == 'POST':
+        text = request.form.get('text', '').strip()
+
+        response = client.models.generate_content(  
+            model="gemini-2.5-flash-preview-tts",
+            contents=text,
+            config=types.GenerateContentConfig(
+                response_modalities=["AUDIO"],
+                speech_config=types.SpeechConfig(
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                            voice_name='Kore',
+                        )
+                    )
+                ),
+            )
+        )
+
+        try:
+            b64data = response.candidates[0].content.parts[0].inline_data.data
+        except (AttributeError, IndexError) as e:
+            return render_template('text_to_speech.html', error='Unexpected response structure from TTS API.')
+        
+        try:
+            raw_bytes = base64.b64decode(b64data)
+        except Exception:
+            return render_template('text_to_speech.html', error='Failed to decode auido data')
+
+        timestamp = int(time.time() * 1000)
+        filename = f'tts_{timestamp}.wav'
+        full_path = os.path.join(OUTPUT_DIR, filename)
+        with open(full_path, 'wb') as f:
+            f.write(raw_bytes)
+        audio_path = f"generated/{filename}"
+        return render_template('text_to_speech.html', audio=audio_path)
+    
+    # For GET requests
+    return render_template('text_to_speech.html')
+
 
 @app.route("/speech-to-text", methods = ['GET','POST'])
 def speech_to_text():

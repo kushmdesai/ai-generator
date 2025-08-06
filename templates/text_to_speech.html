@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Text to Speech{% endblock %}
+
+{% block extra_head %}
+  <!-- uncomment this if you want to use responsiveVoice
+  <script src="https://code.responsivevoice.org/responsivevoice.js"></script> -->
+{% endblock %}
+
+{% block content %}
+  <h2>Text to Speech</h2>
+  {% if error %}
+    <div style="color: red;">{{ error }}</div>
+  {% endif %}
+  <form method="POST" action="{{ url_for('text_to_speech') }}">
+    <label for="text">Enter text to convert to speech:</label>
+    <textarea id="text" name="text" rows="4" required>{{ request.form.get('text', '') }}</textarea>
+    <button type="submit">Convert to Speech</button>
+  </form>
+
+  {% if audio %}
+    <h3>Generated Audio:</h3>
+    <audio controls>
+      <source src="{{ url_for('static', filename=audio) }}" type="audio/wav">
+      Your browser does not support the audio element.
+    </audio>
+    <p><a href="{{ url_for('static', filename=audio) }}" download="speech.wav">Download Audio File</a></p>
+  {% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+    <script>
+        // Optional: Add any JavaScript functionality if needed
+        // For example, you can use responsiveVoice to play the audio directly
+        // document.querySelector('button').addEventListener('click', function() {
+        //   responsiveVoice.speak(document.getElementById('text').value);
+        // });
+    </script>
+{% endblock %}
