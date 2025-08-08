@@ -135,16 +135,19 @@ def image_generation():
     if request.method == 'POST':
 
         topic = request.form.get('topic')
+        try:
+            response = client.models.generate_content(
 
-        response = client.models.generate_content(
+            model="gemini-2.0-flash-preview-image-generation",
+            contents=f"Draw an image about {topic}.",
 
-           model="gemini-2.0-flash-preview-image-generation",
-           contents=f"Draw an image about {topic}.",
-
-           config= types.GenerateContentConfig(    
-               response_modalities=['TEXT','IMAGE'],
-           )
-        )
+            config= types.GenerateContentConfig(    
+                response_modalities=['TEXT','IMAGE'],
+            )
+            )
+        except Exception as e:
+            print(f"an error occured: {e}")
+            return render_template('image-gen.html', error="An error occurred while generating the image. Please try again.")
         image_data = None
         text = None
         for part in response.candidates[0].content.parts:

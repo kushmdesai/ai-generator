@@ -29,4 +29,9 @@
             </a>
         </div>
     {% endif %}
+    {% if error %}
+        <div class="error-message">
+            <p>{{ error }}</p>
+        </div>
+    {% endif %}
 {% endblock %}
