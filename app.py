@@ -1,4 +1,4 @@
-import os, base64, markdown, wave, time
+import os, base64, markdown, wave, time, mimetypes
 from flask import Flask, render_template, request, session
 from google import genai
 from google.genai import types
@@ -310,35 +310,51 @@ def text_to_speech():
 
 
 @app.route("/speech-to-text", methods = ['GET','POST'])
+@app.route("/speech-to-text", methods=['GET', 'POST'])
 def speech_to_text():
     UPLOAD_FOLDER = 'static/uploads'
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
     if request.method == 'POST':
-
         file = request.files.get('audio_file')
 
         if not file:
-            return 'no file uploaded', 400
-        
+            return 'No file uploaded', 400
+
         filename = secure_filename(file.filename)
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
 
+        # Upload file to Gemini
         myfile = client.files.upload(file=filepath)
-        prompt = 'Transcibe the audio file'
+
+        # Detect MIME type automatically (should be audio/wav)
+        mime_type, _ = mimetypes.guess_type(filepath)
+        if not mime_type:
+            mime_type = "audio/mp3"
+
+        prompt = "Transcribe the audio file"
+
         try:
             response = client.models.generate_content(
-                model = 'gemini-2.5-flash',
-                contents=[prompt, myfile]       
-            )  
+                model="gemini-2.5-flash",
+                contents=[
+                    prompt,
+                    {
+                        "file_data": {
+                            "file_uri": myfile.uri,
+                            "mime_type": mime_type
+                        }
+                    }
+                ]
+            )
         except Exception as e:
             print(f"An error occurred: {e}")
             return 'Error occurred while processing the audio file', 500
 
-        text = response.text
+        text = response.candidates[0].content.parts[0].text
         return render_template('speech_to_text.html', text=text)
-    
+
     return render_template('speech_to_text.html')
     
 

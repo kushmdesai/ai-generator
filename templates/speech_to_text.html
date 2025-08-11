@@ -5,10 +5,11 @@
 {% block content %}
     <h2>Speech to Text</h2>
     <form method="POST" action="{{ url_for('speech_to_text') }}" enctype="multipart/form-data">
-        <label for="audio_file">Upload your audio file:</label>
+        <label for="audio_file">Upload your audio file (.mp3 files only):</label>
         <input type="file" id="audio_file" name="audio_file" accept="audio/*" required>
         <button type="submit">Submit</button>
     </form>
+    
 
     {% if text %}
         <h3>Transcription:</h3>
