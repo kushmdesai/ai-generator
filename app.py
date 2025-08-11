@@ -148,7 +148,7 @@ def image_generation():
         except Exception as e:
             print(f"an error occured: {e}")
             traceback.print_exc()
-            return render_template('image-gen.html', error="An error occurred {e}")
+            return render_template('image-gen.html', error=f"An error occurred {e}")
         image_data = None
         text = None
         for part in response.candidates[0].content.parts:
