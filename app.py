@@ -1,4 +1,4 @@
-import os, base64, markdown, wave, time, mimetypes
+import os, base64, markdown, wave, time, mimetypes, traceback
 from flask import Flask, render_template, request, session
 from google import genai
 from google.genai import types
@@ -147,7 +147,8 @@ def image_generation():
             )
         except Exception as e:
             print(f"an error occured: {e}")
-            return render_template('image-gen.html', error="An error occurred while generating the image. Please try again.")
+            traceback.print_exc()
+            return render_template('image-gen.html', error="An error occurred {e}")
         image_data = None
         text = None
         for part in response.candidates[0].content.parts:
