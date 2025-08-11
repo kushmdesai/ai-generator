@@ -148,7 +148,12 @@ def image_generation():
         except Exception as e:
             print(f"an error occured: {e}")
             traceback.print_exc()
-            return render_template('image-gen.html', error=f"An error occurred {e}")
+            error_message = str(e)
+            if "Image generation is not available in your country" in error_message:
+                user_message = "Sorry, Google has shutdown Image Generation in finalnd the location of this server. Try again once Google api allows it."
+            else:
+                user_message = f"An error occured: {e}"
+            return render_template('image-gen.html', error=user_message)
         image_data = None
         text = None
         for part in response.candidates[0].content.parts:
