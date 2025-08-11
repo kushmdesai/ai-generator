@@ -138,12 +138,12 @@ def image_generation():
         try:
             response = client.models.generate_content(
 
-            model="gemini-2.0-flash-preview-image-generation",
-            contents=f"Draw an image about {topic}.",
+                model="gemini-2.0-flash-preview-image-generation",
+                contents=f"Draw an image about {topic}.",
 
-            config= types.GenerateContentConfig(    
-                response_modalities=['TEXT','IMAGE'],
-            )
+                config= types.GenerateContentConfig(    
+                    response_modalities=['TEXT','IMAGE'],
+                )
             )
         except Exception as e:
             print(f"an error occured: {e}")
@@ -327,11 +327,14 @@ def speech_to_text():
 
         myfile = client.files.upload(file=filepath)
         prompt = 'Transcibe the audio file'
-
-        response = client.models.generate_content(
-            model = 'gemini-2.5-flash',
-            contents=[prompt, myfile]       
-        )  
+        try:
+            response = client.models.generate_content(
+                model = 'gemini-2.5-flash',
+                contents=[prompt, myfile]       
+            )  
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return 'Error occurred while processing the audio file', 500
 
         text = response.text
         return render_template('speech_to_text.html', text=text)
