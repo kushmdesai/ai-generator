@@ -4,7 +4,7 @@
 {% block extra_head %}
 <style>
     :root {
-        --primary-color: #4ca1af; /* Teal from gradient */
+        --primary-color: #4ca1af;
         --button-hover-color: #5cc9d7;
         --card-bg-color: rgba(255, 255, 255, 0.1);
         --card-border-color: rgba(255, 255, 255, 0.2);
@@ -40,7 +40,7 @@
         justify-content: center;
         align-items: center;
         text-align: center;
-        min-height: calc(100vh - 140px); /* Adjust based on header/footer height */
+        min-height: calc(100vh - 140px);
         box-sizing: border-box;
     }
 
@@ -86,10 +86,13 @@
         opacity: 0;
     }
 
+    /* staggered fade-in delays for all 6 cards */
     .feature-card:nth-child(1) { animation-delay: 0.2s; }
     .feature-card:nth-child(2) { animation-delay: 0.4s; }
     .feature-card:nth-child(3) { animation-delay: 0.6s; }
-
+    .feature-card:nth-child(4) { animation-delay: 0.8s; }
+    .feature-card:nth-child(5) { animation-delay: 1s; }
+    .feature-card:nth-child(6) { animation-delay: 1.2s; }
 
     .feature-card:hover {
         transform: translateY(-12px);
@@ -149,9 +152,24 @@
         <a href="{{ url_for('short_story') }}" class="button">Create a Story</a>
     </div>
     <div class="feature-card">
-        <h3>Image Generator</h3>
-        <p>Transform your textual descriptions into stunning visuals. Describe any scene or concept, and our AI will generate a unique image for you.</p>
-        <a href="{{ url_for('image_generation') }}" class="button">Generate Images</a>
+        <h3>Code Generation</h3>
+        <p>Effortlessly generate code snippets in various programming languages. Just describe your requirements, and our AI will provide the code you need.</p>
+        <a href="{{ url_for('code_generation') }}" class="button">Generate Code</a>
+    </div>
+    <div class="feature-card">
+        <h3>ChatBot</h3>
+        <p>Engage in natural conversations with our AI-powered ChatBot. Get instant responses and assistance on a wide range of topics.</p>
+        <a href="{{ url_for('chatbot') }}" class="button">Talk to ChatBot</a>
+    </div>
+    <div class="feature-card">
+        <h3>Text to Speech</h3>
+        <p>Convert written text into natural-sounding speech. Choose from various voices and languages to create engaging audio content.</p>
+        <a href="{{ url_for('text_to_speech') }}" class="button">Create Speech</a>
+    </div>
+    <div class="feature-card">
+        <h3>Speech to Text</h3>
+        <p>Convert spoken language into written text with high accuracy. Upload audio files or record directly to transcribe speech efficiently.</p>
+        <a href="{{ url_for('speech_to_text') }}" class="button">Create Text</a>
     </div>
 </div>
 {% endblock %}
