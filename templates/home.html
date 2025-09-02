@@ -93,6 +93,7 @@
     .feature-card:nth-child(4) { animation-delay: 0.8s; }
     .feature-card:nth-child(5) { animation-delay: 1s; }
     .feature-card:nth-child(6) { animation-delay: 1.2s; }
+    .feature-card:nth-child(7) { animation-delay: 1.4s; }
 
     .feature-card:hover {
         transform: translateY(-12px);
@@ -170,6 +171,11 @@
         <h3>Speech to Text</h3>
         <p>Convert spoken language into written text with high accuracy. Upload audio files or record directly to transcribe speech efficiently.</p>
         <a href="{{ url_for('speech_to_text') }}" class="button">Create Text</a>
+    </div>
+    <div class="feature-card">
+        <h3>Text Summarizer</h3>
+        <p>Efficiently condense long articles, papers, or documents into concise summaries.</p>
+        <a href="{{ url_for('text_summarizer') }}" class="button">Summarize</a>
     </div>
 </div>
 {% endblock %}

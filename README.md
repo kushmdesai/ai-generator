@@ -11,6 +11,7 @@ This is a Flask-based web application that leverages Google's Gemini API to gene
 - Chatbot: AI conversational assistan with chat history.
 - Text-to-Speech: Convert text input into speech audio.
 - Speech-to-Text: Transcribe uploaded audio file.
+- Text Summarization: Summarize long documents into reable text.
 
 ## Live Demo
 
@@ -30,6 +31,7 @@ You can access the live version of this website at:
     - '/chatbot' - chat with ai
     - '/text-to-speech' - convert text to speech audio
     - '/speech-to-text' - transcribe audio files
+    - '/text-summarizer' - summarize text
 
 ## Notes
 

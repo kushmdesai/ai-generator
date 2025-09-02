@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Summarizer{% endblock %}
+
+{% block extra_head %}
+    <meta name="description" content="AI-powered text summarization application">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .form-row > * {
+            flex: 1;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0.5rem;
+        }
+
+        .char-counter.warning {
+            color: #ff6b35;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .summary-content {
+            position: relative;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .copy-button:hover {
+            background: var(--primary-hover-color);
+        }
+
+        .copy-button:copied {
+            background: #28a745;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border: 4px;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 600px) {
+            .form-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .summary-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h2>Text Summarizer</h2>
+    <p>Transform lengthy text into concise, meaningful summaries using AI.</p>
+
+    <form method="POST" action="{{ url_for('text_summarizer') }}" id="summarizeForm">
+        <div class="form-group">
+            <label for="text_input">Text to Summarize:</label>
+            <textarea name="text_input" id="text_input" required placeholder="Paste your text here... (articles, documents, emails, etc.)">{{ original_text if original_text else ' ' }}</textarea>
+            <div class="char-counter" id="charCounter">0 characters</div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="summary_type">Summary Type:</label>
+                <select name="summary_type" id="summary_type">
+                    <option value="standard" {{ 'selected' if summary_type == 'standard' else '' }}>Standard (1-2 paragraphs)</option>
+                    <option value="bullet_points" {{ 'selected' if summary_type == 'bullet_points' else '' }}>Bullet Points</option>
+                    <option value="detailed" {{ 'selected' if summary_type == 'detailed' else '' }}>Detailed (comprehensive)</option>
+                    <option value="brief" {{ 'selected' if summary_type == 'brief' else '' }}>Brief (2-3 sentences)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" id="submitBtn">Generate Summary</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="loading" id="loading">
+        <p>AI is analyzing your text and generating a summary...</p>
+    </div>
+
+    {% if summary %}
+        <div class="summary-content">
+            <h3>Generated Summary</h3>
+            {% if word_count_original and word_count_summary and compression_ratio %}
+                <div class="summary-stats">
+                    <span><strong>Original:</strong> {{ word_count_original }} words</span>
+                    <span><strong>Summary:</strong> {{ word_count_summary }} words</span>
+                    <span><strong>Compression Ratio:</strong> {{ compression_ratio }}% reduction</span>
+                </div>
+            {% endif %}
+            <div class="essay-content">
+                <button class="copy-button" onclick="copyToClipboard()">Copy</button>
+                {{ summary|safe }}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if error %}
+        <div class="error-message">
+            <strong>Error:</strong> {{ error }}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const textInput = document.getElementById('text_input');
+    const charCounter = document.getElementById('charCounter');
+    const form = document.getElementById('summarizeForm');
+    const loading = document.getElementById('loading');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function updateCharCounter() {
+        const count = textInput.value.length;
+        charCounter.textContent = `${count.toLocaleString()} characters`;
+
+        if (count > 45000) {
+            charCounter.classList.add('warning');
+        } else {
+            charCounter.classList.remove('warning');
+        }
+    }
+
+    textInput.addEventListener('input', updateCharCounter);
+    updateCharCounter();
+
+    form.addEventListener('submit', function() {
+        loading.classList.add('show');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Generating...';
+    });
+
+    function copyToClipboard() {
+        const summaryText = document.querySelector('.essay-content').textContent;
+        navigator.clipboard.writeText(summaryText).then(function () {
+            const copyBtn = document.querySelector('.copy-button');
+            copyBtn.textContent = 'Copied!';
+            copyBtn.classList.add('copied');
+            setTimeout(function() {
+                copyBtn.textContent = 'Copy';
+                copyBtn.classList.remove('copied');
+            }, 2000);
+        }).catch(function (err) {
+            console.error('Could not copy text: ', err);
+        });
+    }
+</script>
+{% endblock %}

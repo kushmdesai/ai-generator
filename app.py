@@ -41,6 +41,17 @@ except Exception as e:
     print(f"an error occured: {e}")
 
 try:
+    with open('./system_instruction/summarizer.txt', 'r') as file:
+        summarizerTxt = file.read()
+        print("found summarizer.txt")
+
+except FileNotFoundError:
+    print("Error: summarizer.txt not found")
+
+except Exception as e:
+    print(f"an error occures: {e}")
+
+try:
     with open('./system_instruction/essay.txt','r') as file:
 
         essayTxt = file.read()
@@ -362,7 +373,56 @@ def speech_to_text():
         return render_template('speech_to_text.html', text=text)
 
     return render_template('speech_to_text.html')
-    
+
+@app.route("/text-summarizer", methods=['GET', 'POST'])
+def text_summarizer():
+    if request.method == 'POST':
+        text_input = request.form.get('text_input', '').strip()
+        summary_type = request.form.get('summary_type', 'standard')
+
+        if not text_input:
+            return render_template('text_summarizer.html', error="Please provide text to summarize")
+        
+        if len(text_input) > 50000:
+            return render_template('text_summarizer.html', error="Text is too long. Please limit to 50,000 characters.")
+        
+        try:
+            if summary_type == 'brief':
+                prompt = f"Create a brief summary in exactly 2-3 sentences that captures the main point of this text:\n\n{text_input}"
+            elif summary_type == 'standard':
+                prompt = f"Create a standard summary in 1-2 well-structured paragraphs covering the key points of this text:\n\n{text_input}"
+            elif summary_type == 'detailed':
+                prompt = f"Create a comprehensive detailed summary that preserves important nuances, context, and supporting details from this text:\n\n{text_input}"
+            elif summary_type == 'bullets':
+                prompt = f"Create a bullet-point summary listing the key takeaways and main points from this text. Format with clear bullet points:\n\n{text_input}"
+            else:
+                prompt = f"Summarize this text:\n\n{text_input}"
+
+            response = client.models.generate_content(
+                model='gemini-2.5-pro',
+                config=types.GenerateContentConfig(
+                    system_instruction=summarizerTxt,
+                    temperature=0.3,
+                    max_output_tokens=2048,
+                ),
+                contents=prompt
+            )
+
+            summary = response.text
+            word_count_original = len(text_input.split())
+            word_count_summary = len(summary.split())
+            compression_ratio = round((1 - word_count_summary/word_count_original) * 100, 1)
+
+            return render_template('text_summarizer.html', summary=summary, original_text=text_input, word_count_original=word_count_original, word_count_summary=word_count_summary, compression_ratio=compression_ratio, summary_type=summary_type)
+        except ClientError as e:
+            if "RESOURCE_EXHAUSED" in str(e):
+                error_message = "Quota exceeded! Try again tomorrow or upgrade your plan"
+            else:
+                error_message = f"An error occurred: {e}"
+            return render_template('text_summarizer.html', error=error_message)
+        except Exception as e:
+            return render_template('text_summarizer.html', error=f"Unexpected error: {e}")
+    return render_template('text_summarizer.html')
 
 if __name__ == '__main__':
      app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
